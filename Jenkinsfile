@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
+                git 'https://github.com/ridodomayana/secretsanta-generator.git'
             }
         }
 
@@ -55,8 +55,8 @@ pipeline {
          stage('Docker Build') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker build -t  santa123 . "
+                   withDockerRegistry(credentialsId: 'docker') {
+                    sh "docker build -t  ridosanta . "
                  }
                }
             }
@@ -65,20 +65,14 @@ pipeline {
         stage('Docker Push') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
+                   withDockerRegistry(credentialsId: 'docker') {
+                    sh "docker tag ridosanta rido4good/ridosanta:latest"
+                    sh "docker push rido4good/ridosanta:latest"
                  }
                }
             }
         }
-        
-        	 
-        stage('Docker Image Scan') {
-            steps {
-               sh "trivy image adijaiswal/santa123:latest "
-            }
-        }}
+      }
         
          post {
             always {
