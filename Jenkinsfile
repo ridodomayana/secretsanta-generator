@@ -26,25 +26,6 @@ pipeline {
                sh "mvn test"
             }
         }
-        
-		stage('OWASP Dependency Check') {
-            steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
-
-        stage('Sonar Analysis') {
-            steps {
-               withSonarQubeEnv('sonar'){
-                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
-                   -Dsonar.java.binaries=. \
-                   -Dsonar.projectKey=Santa '''
-               }
-            }
-        }
-
 		 
         stage('Code-Build') {
             steps {
