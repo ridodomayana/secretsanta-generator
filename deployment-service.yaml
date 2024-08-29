@@ -1,20 +1,20 @@
 apiVersion: apps/v1
-kind: Deployment # Kubernetes resource kind we are creating
+kind: Deployment
 metadata:
-  name: santa-deployment
+  name: santa1234-deployment
 spec:
   selector:
     matchLabels:
-      app: santa
-  replicas: 2 # Number of replicas that will be created for this deployment
+      app: santa1234
+  replicas: 2
   template:
     metadata:
       labels:
-        app: santa
+        app: santa1234
     spec:
       containers:
         - name: santa1234
-          image: rido4good/santa1234:latest # Image that will be used to containers in the cluster
+          image: rido4good/santa1234:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080 # The port that the container is running on in the cluster
