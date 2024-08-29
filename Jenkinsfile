@@ -1,17 +1,14 @@
 pipeline {
-    agent any
+    agent { label 'Jenkins-Agent' }
     tools{
-        jdk 'jdk17'
-        maven 'maven3'
-    }
-    environment{
-        SCANNER_HOME= tool 'sonar-scanner'
+        jdk 'Java17'
+        maven 'Maven3'
     }
 
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
+                git 'https://github.com/ridodomayana/secretsanta-generator.git'
             }
         }
 
@@ -26,25 +23,21 @@ pipeline {
                sh "mvn test"
             }
         }
-        
-		stage('OWASP Dependency Check') {
-            steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
 
         stage('Sonar Analysis') {
             steps {
-               withSonarQubeEnv('sonar'){
-                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
-                   -Dsonar.java.binaries=. \
-                   -Dsonar.projectKey=Santa '''
+               withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                   sh "mvn sonar:sonar"
                }
             }
         }
-
+	stage("Quality Gate"){
+	        steps {
+		        script{
+		            waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
+		        }
+	        }
+	}
 		 
         stage('Code-Build') {
             steps {
@@ -52,12 +45,12 @@ pipeline {
             }
         }
 
-         stage('Docker Build') {
+        stage('Docker Build') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker build -t  santa123 . "
-                 }
+                   withDockerRegistry(credentialsId: 'dockerhub') {
+                    sh "docker build -t  santa1234 . "
+                   }
                }
             }
         }
@@ -65,41 +58,13 @@ pipeline {
         stage('Docker Push') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
-                 }
+                   withDockerRegistry(credentialsId: 'dockerhub') {
+                    sh "docker tag santa1234 rido4good/santa1234:latest"
+                    sh "docker push rido4good/santa1234:latest"
+                   }
                }
             }
         }
-        
-        	 
-        stage('Docker Image Scan') {
-            steps {
-               sh "trivy image adijaiswal/santa123:latest "
-            }
-        }}
-        
-         post {
-            always {
-                emailext (
-                    subject: "Pipeline Status: ${BUILD_NUMBER}",
-                    body: '''<html>
-                                <body>
-                                    <p>Build Status: ${BUILD_STATUS}</p>
-                                    <p>Build Number: ${BUILD_NUMBER}</p>
-                                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                                </body>
-                            </html>''',
-                    to: 'jaiswaladi246@gmail.com',
-                    from: 'jenkins@example.com',
-                    replyTo: 'jenkins@example.com',
-                    mimeType: 'text/html'
-                )
-            }
-        }
 		
-		
-
-    
+    }
 }
